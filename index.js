@@ -20,6 +20,14 @@ function logHandler (line) {
   process.stdout.write(line)
 }
 
+function saveConfiguration () {
+  var content = ''
+  content = `${content}EMPIRICAL_DIR="${process.env.EMPIRICAL_DIR}"\n`
+  content = `${content}EMPIRICAL_API_KEY="${process.env.EMPIRICAL_API_KEY}"\n`
+  content = `${content}EMPIRICAL_API_SECRET="${process.env.EMPIRICAL_API_SECRET}"\n`
+  fs.writeFileSync('/emp.env', content)
+}
+
 function configure () {
   const rl = readline.createInterface({
     input: process.stdin,
@@ -30,7 +38,8 @@ function configure () {
       // TODO: Validate that directory exists?
       if (path.isAbsolute(newDir)) {
         // Save new dir
-        fs.writeFileSync('/emp.env', `EMPIRICAL_DIR=${newDir}\n`)
+        process.env.EMPIRICAL_DIR=newDir
+        saveConfiguration()
         console.log('Saved new empirical directory:', newDir)
       } else {
         console.log('Error: Please provide an absolute path.')
@@ -39,6 +48,22 @@ function configure () {
       console.log('Empirical directory not changed')
     }
     rl.close()
+  })
+}
+
+function login () {
+  const rl = readline.createInterface({
+    input: process.stdin,
+    output: process.stdout
+  })
+  rl.question(`Empirical API Key: [${process.env.EMPIRICAL_API_KEY}]: `, function (newKey) {
+    rl.question(`Empirical API Secret: [${process.env.EMPIRICAL_API_SECRET}]: `, function (newSecret) {
+      // TODO: Validate the key pair works
+      if (newKey) process.env.EMPIRICAL_API_KEY=newKey
+      if (newSecret) process.env.EMPIRICAL_API_SECRET=newSecret
+      saveConfiguration()
+      rl.close()
+    })
   })
 }
 
@@ -88,6 +113,9 @@ switch (args[2]) {
     break
   case 'configure':
     configure()
+    break
+  case 'login':
+    login()
     break
   case 'data':
     data(args[3])
