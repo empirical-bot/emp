@@ -38,7 +38,7 @@ function configure () {
       // TODO: Validate that directory exists?
       if (path.isAbsolute(newDir)) {
         // Save new dir
-        process.env.EMPIRICAL_DIR=newDir
+        process.env.EMPIRICAL_DIR = newDir
         saveConfiguration()
         console.log('Saved new empirical directory:', newDir)
       } else {
@@ -59,8 +59,8 @@ function login () {
   rl.question(`Empirical API Key: [${process.env.EMPIRICAL_API_KEY}]: `, function (newKey) {
     rl.question(`Empirical API Secret: [${process.env.EMPIRICAL_API_SECRET}]: `, function (newSecret) {
       // TODO: Validate the key pair works
-      if (newKey) process.env.EMPIRICAL_API_KEY=newKey
-      if (newSecret) process.env.EMPIRICAL_API_SECRET=newSecret
+      if (newKey) process.env.EMPIRICAL_API_KEY = newKey
+      if (newSecret) process.env.EMPIRICAL_API_SECRET = newSecret
       saveConfiguration()
       rl.close()
     })
