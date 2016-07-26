@@ -7,6 +7,7 @@ var listen = require('./listen')
 var readline = require('readline')
 var fs = require('fs')
 var path = require('path')
+var client = require('./lib/client')
 
 // TODO: Print help
 
@@ -61,10 +62,23 @@ function login () {
       // TODO: Validate the key pair works
       if (newKey) process.env.EMPIRICAL_API_KEY = newKey
       if (newSecret) process.env.EMPIRICAL_API_SECRET = newSecret
-      saveConfiguration()
+      client.setAuth(process.env.EMPIRICAL_API_KEY, process.env.EMPIRICAL_API_SECRET)
+      client.getProfile().then(function (profile) {
+        saveConfiguration()
+        console.log('Logged in successfully. Stored credentials.')
+      }).catch(function (err) {
+        console.log('Login failed:', err)
+      })
       rl.close()
     })
   })
+}
+
+function logout () {
+  process.env.EMPIRICAL_API_KEY = ''
+  process.env.EMPIRICAL_API_SECRET = ''
+  saveConfiguration()
+  console.log('Logged out successfully. Cleared credentials.')
 }
 
 function run (experiment_name) {
@@ -116,6 +130,9 @@ switch (args[2]) {
     break
   case 'login':
     login()
+    break
+  case 'logout':
+    logout()
     break
   case 'data':
     data(args[3])

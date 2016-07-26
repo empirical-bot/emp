@@ -78,13 +78,19 @@ if [ "$1" = "data" ] && [ "$2" = "hash" ]; then
   ENV_VARS="$ENV_VARS -e DATA_FILE=/x$DATA_FILE"
 fi
 
-DOCKER_RUN_OPTIONS="-ti"
+if [ -t 1  ]; then
+  DOCKER_RUN_OPTIONS="-t"
+fi
+if [ -t 0  ]; then
+  DOCKER_RUN_OPTIONS="$DOCKER_RUN_OPTIONS -i"
+fi
 
 # Test environment
 if [ "$EMPIRICAL_ENV" = "test" ]; then
+  DOCKER_RUN_OPTIONS="$DOCKER_RUN_OPTIONS --net=host"
+  EMPIRICAL_API_URI='http://localhost:5000'
   IMAGE="empiricalci/emp:test"
   VOLUMES="$VOLUMES -v $(pwd):/emp"
-  DOCKER_RUN_OPTIONS="-i"
 fi
 
 launch $@
