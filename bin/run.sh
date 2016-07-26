@@ -78,11 +78,9 @@ if [ "$1" = "data" ] && [ "$2" = "hash" ]; then
   ENV_VARS="$ENV_VARS -e DATA_FILE=/x$DATA_FILE"
 fi
 
+DOCKER_RUN_OPTIONS="-i"
 if [ -t 1  ]; then
-  DOCKER_RUN_OPTIONS="-t"
-fi
-if [ -t 0  ]; then
-  DOCKER_RUN_OPTIONS="$DOCKER_RUN_OPTIONS -i"
+  DOCKER_RUN_OPTIONS="$DOCKER_RUN_OPTIONS -t"
 fi
 
 # Test environment
