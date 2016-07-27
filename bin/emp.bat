@@ -1,8 +1,13 @@
 @ECHO OFF
 SET "TAB=	"
+SET EXP_PATH=%~f3
+SET EXP_PATH=%EXP_PATH:\=/%
+SET EXP_PATH=%EXP_PATH::=%
+SET EXP_PATH=/%EXP_PATH%
+ECHO %EXP_PATH%
 if "%1"=="run" IF NOT "%2"=="" IF NOT "%3"=="" (
 	docker run -t --rm -v /var/run/docker.sock:/var/run/docker.sock^
- 	 -v %3:/empirical/code:ro^
+ 	 -v %EXP_PATH%:/empirical/code:ro^
  	 -v %EMPIRICAL_DIR%/data:/empirical/data^
  	 -v %EMPIRICAL_DIR%/workspaces:/empirical/workspaces^
  	 -e EMPIRICAL_DIR=%EMPIRICAL_DIR%^
