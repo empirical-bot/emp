@@ -81,36 +81,66 @@ function logout () {
   console.log('Logged out successfully. Cleared credentials.')
 }
 
-function run (experiment_name) {
-  const code_dir = '/empirical/code'
-  // Read experiment config
-  logSection('EXPERIMENT:')
-  var experiment = emp.readExperimentConfig(code_dir, {
-    name: experiment_name
-  })
-  console.log(prettyjson.render(experiment))
-  // Build docker Image
-  logSection('BUILD:')
-  emp.buildImage(experiment.environment, code_dir, function (data) {
-    process.stdout.write(data)
-  })
-  // Get dataset
-  .then(function () {
-    logSection('DATASET:')
-    return emp.getDataset(code_dir, experiment.dataset).then(function (data) {
-      if (!data) console.log('No dataset provided')
-      console.log(prettyjson.render(data))
+function pull (experiment) {
+  logSection('PULL:')
+  return client.getBuild(experiment).then(function (build) {
+    return client.getKeys(build.repo.full_name).then(function (keys) {
+      console.log('Cloning from', build.repo.ssh_url)
+      if (build.push.head_sha) console.log(`Checking out ${build.push.head_sha}`)
+      return emp.getCodeDir(build.repo.ssh_url, build.push.head_sha, keys)
+    }).then(function (dir) {
+      return {
+        code_dir: dir,
+        name: build.name
+      }
     })
   })
-  // Run experiment
-  .then(function () {
-    logSection('RUN:')
-    return emp.runExperiment(experiment, logHandler)
-  }).then(function () {
-    logSection('RESULTS:')
-    return emp.getResults(experiment).then(function (overall) {
-      console.log(prettyjson.render({overall: overall}))
-      console.log(colors.green.bold('Success'))
+}
+
+function run (experiment_name, dir) {
+  Promise.resolve(dir).then(function (code_dir) {
+    // Get code dir
+    if (code_dir) {
+      return Promise.resolve({
+        code_dir: process.env.CODE_DIR,
+        name: experiment_name
+      })
+    } else {
+      return pull(experiment_name)
+    }
+  }).then(function (params) {
+    const code_dir = params.code_dir
+    // Get experiment configuration
+    logSection('EXPERIMENT:')
+    var experiment = emp.readExperimentConfig(code_dir, {
+      name: params.name
+    })
+    console.log(prettyjson.render(experiment))
+    // Build docker Image
+    logSection('BUILD:')
+    emp.buildImage(experiment.environment, code_dir, function (data) {
+      process.stdout.write(data)
+    })
+    // Get dataset
+    .then(function () {
+      logSection('DATASET:')
+      return emp.getDataset(code_dir, experiment.dataset).then(function (data) {
+        if (!data) console.log('No dataset provided')
+        console.log(prettyjson.render(data))
+      })
+    })
+    // Run experiment
+    .then(function () {
+      logSection('RUN:')
+      return emp.runExperiment(experiment, logHandler)
+    })
+    // Get Results
+    .then(function () {
+      logSection('RESULTS:')
+      return emp.getResults(experiment).then(function (overall) {
+        console.log(prettyjson.render({overall: overall}))
+        console.log(colors.green.bold('Success'))
+      })
     })
   }).catch(function (err) {
     console.log(err)
@@ -123,7 +153,7 @@ switch (args[2]) {
     listen()
     break
   case 'run':
-    run(args[3])
+    run(args[3], args[4])
     break
   case 'configure':
     configure()

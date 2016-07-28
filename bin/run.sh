@@ -53,18 +53,14 @@ VOLUMES="$VOLUMES -v $EMPIRICAL_DIR/workspaces:/empirical/workspaces"
 VOLUMES="$VOLUMES -v $HOME/.emp/emp.env:/emp.env"
 
 if [ "$1" = "run" ]; then
-   if [ -z "$3" ]; then
-    echo "emp run requires two arguments"
-    echo "Usage: emp run my-experiment /path/to/project"
-    exit
-  else
+  if [ ! -z "$3" ]; then
     CODE_DIR=$(absolute_path $3)
     if [ -z $CODE_DIR ]; then 
       echo "Path doesn't exists"
       exit 0
     fi
     ENV_VARS="$ENV_VARS -e CODE_DIR=$CODE_DIR"
-    VOLUMES="$VOLUMES -v $CODE_DIR:/empirical/code:ro"
+    VOLUMES="$VOLUMES -v $CODE_DIR:$CODE_DIR:ro"
   fi
 fi
 
