@@ -4,7 +4,6 @@ SET EXP_PATH=%~f3
 SET EXP_PATH=%EXP_PATH:\=/%
 SET EXP_PATH=%EXP_PATH::=%
 SET EXP_PATH=/%EXP_PATH%
-ECHO %EXP_PATH%
 if "%1"=="run" IF NOT "%2"=="" IF NOT "%3"=="" (
 	docker run -t --rm -v /var/run/docker.sock:/var/run/docker.sock^
  	 -v %EXP_PATH%:/empirical/code:ro^
@@ -13,6 +12,16 @@ if "%1"=="run" IF NOT "%2"=="" IF NOT "%3"=="" (
  	 -e EMPIRICAL_DIR=%EMPIRICAL_DIR%^
  	 -e DEBUG=dataset-cache^
  	 empiricalci/emp run %2 & exit /b
+)
+if "%1"=="data" IF "%2"=="hash" IF NOT "%3"=="" (
+	docker run -t --rm -v /var/run/docker.sock:/var/run/docker.sock^
+	 -v %EXP_PATH%:/x%EXP_PATH%^
+ 	 -v %EMPIRICAL_DIR%/data:/empirical/data^
+ 	 -v %EMPIRICAL_DIR%/workspaces:/empirical/workspaces^
+ 	 -e DATA_FILE=/x%EXP_PATH%^
+ 	 -e EMPIRICAL_DIR=%EMPIRICAL_DIR%^
+ 	 -e DEBUG=dataset-cache^
+ 	 empiricalci/emp data hash %3 & exit /b
 )
 if "%1"=="run" IF NOT "%2"=="" (
 	docker run -t --rm -v /var/run/docker.sock:/var/run/docker.sock^
