@@ -1,8 +1,3 @@
-version 1.0.0.{build}
-environment:
-  TIMEOUT: "60m"
-  DOCKER_REMOTE_DAEMON: "1"
-
 install:
   - powershell -file cpuid.ps1
   - choco install -y mingw
