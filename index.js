@@ -3,14 +3,11 @@ var emp = require('./lib')
 var prettyjson = require('prettyjson')
 var colors = require('colors/safe')
 var data = require('./lib/data')
-var listen = require('./listen')
 var readline = require('readline')
 var fs = require('fs')
 var path = require('path')
-var client = require('./lib/client')
+var client = require('empirical-client')
 var usage = require('./lib/usage')
-
-// TODO: Print help
 
 var args = process.argv
 
@@ -25,8 +22,7 @@ function logHandler (line) {
 function saveConfiguration () {
   var content = ''
   content = `${content}EMPIRICAL_DIR="${process.env.EMPIRICAL_DIR}"\n`
-  content = `${content}EMPIRICAL_API_KEY="${process.env.EMPIRICAL_API_KEY}"\n`
-  content = `${content}EMPIRICAL_API_SECRET="${process.env.EMPIRICAL_API_SECRET}"\n`
+  content = `${content}EMPIRICAL_AUTH="${process.env.EMPIRICAL_AUTH}"\n`
   fs.writeFileSync('/emp.env', content)
 }
 
@@ -58,17 +54,25 @@ function login () {
     input: process.stdin,
     output: process.stdout
   })
-  rl.question(`Empirical API Key: [${process.env.EMPIRICAL_API_KEY}]: `, function (newKey) {
-    rl.question(`Empirical API Secret: [${process.env.EMPIRICAL_API_SECRET}]: `, function (newSecret) {
-      // TODO: Validate the key pair works
-      if (newKey) process.env.EMPIRICAL_API_KEY = newKey
-      if (newSecret) process.env.EMPIRICAL_API_SECRET = newSecret
-      client.setAuth(process.env.EMPIRICAL_API_KEY, process.env.EMPIRICAL_API_SECRET)
+  var creds = process.env.EMPIRICAL_AUTH ? new Buffer(process.env.EMPIRICAL_AUTH, 'base64').toString() : ''
+  creds = creds.split(':')
+  var user = creds.length === 2 ? creds[0] : 'None'
+  console.log('Log in with your Empirical credentials. If you don\'t have an account, create one at https://empiricalci.com')
+  rl.question(`Username: [${user}]: `, function (newUser) {
+    rl.question(`Password: `, function (newPass) {
+      if (newUser || newPass) {
+        process.env.EMPIRICAL_AUTH = new Buffer(`${newUser}:${newPass}`).toString('base64')
+      }
+      client.init({host: process.env.EMPIRICAL_API_URI, auth: process.env.EMPIRICAL_AUTH})
       client.getProfile().then(function (profile) {
         saveConfiguration()
         console.log('Logged in successfully. Stored credentials.')
       }).catch(function (err) {
-        console.log('Login failed:', err)
+        if (err.status === 401) {
+          console.log('Login failed: Wrong credentials.')
+        } else {
+          console.log('Something went wrong.')
+        }
       })
       rl.close()
     })
@@ -76,8 +80,7 @@ function login () {
 }
 
 function logout () {
-  process.env.EMPIRICAL_API_KEY = ''
-  process.env.EMPIRICAL_API_SECRET = ''
+  process.env.EMPIRICAL_AUTH = ''
   saveConfiguration()
   console.log('Logged out successfully. Cleared credentials.')
 }
@@ -155,9 +158,6 @@ function version () {
 }
 
 switch (args[2]) {
-  case 'listen':
-    listen()
-    break
   case 'run':
     run(args[3], args[4])
     break
