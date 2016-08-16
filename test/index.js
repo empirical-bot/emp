@@ -8,6 +8,20 @@ function logHandler (log) {
   debug(log)
 }
 
+describe('run()', function () {
+  const run = require('../lib/run')
+  it('should run an experiment', function (done) {
+    this.timeout(60000)
+    run('hello-world', 'node_modules/fixtures/standalone_project')
+    .then(function (stuff) {
+      console.log(stuff)
+      done()
+    })
+    .catch(done)
+  })
+  it('should fail if no code path is given')
+})
+
 describe('Library', function () {
   var emp = require('../lib')
   it('should clone a repo into a temp directory', function (done) {

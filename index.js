@@ -1,37 +1,38 @@
 
 var data = require('./lib/data')
 var usage = require('./lib/usage')
-var configuration = require('./lib/configuration')
+var configure = require('./lib/configuration').update
 var auth = require('./lib/auth')
 var run = require('./lib/run')
-
-var args = process.argv
 
 function version () {
   const emp_version = require('./package.json').version
   console.log(`emp version: ${emp_version}`)
 }
 
-switch (args[2]) {
-  case 'run':
-    run(args[3], args[4])
-    break
-  case 'configure':
-    configuration.update()
-    break
-  case 'login':
-    auth.login()
-    break
-  case 'logout':
-    auth.logout()
-    break
-  case 'data':
-    data(args[3])
-    break
-  case 'version':
-    version()
-    break
-  default:
-    usage.main()
+function execute (args) {
+  switch (args[2]) {
+    case 'run':
+      return run(args[3], args[4])
+    case 'configure':
+      return configure()
+    case 'login':
+      return auth.login()
+    case 'logout':
+      return auth.logout()
+    case 'data':
+      return data(args[3])
+    case 'version':
+      return version()
+    default:
+      return usage.main()
+  }
 }
 
+execute(process.argv).then(function () {
+  // Exit normally
+  process.exit(0)
+}).catch(function () {
+  // Exit with an error
+  process.exit(1)
+})
