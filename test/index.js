@@ -22,6 +22,11 @@ describe('run()', function () {
   it('should fail if no code path is given')
 })
 
+describe('loadConfig()', function () {
+  it('should create a config file if there is none')
+  it('should load the env variables if the file exists')
+})
+
 describe('Library', function () {
   var emp = require('../lib')
   it('should clone a repo into a temp directory', function (done) {
