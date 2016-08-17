@@ -1,7 +1,7 @@
 
 var data = require('./lib/data')
 var usage = require('./lib/usage')
-var configure = require('./lib/configuration').update
+var configure = require('./lib/config').update
 var auth = require('./lib/auth')
 var run = require('./lib/run')
 
