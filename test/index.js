@@ -26,6 +26,7 @@ before(function (done) {
   })
 })
 
+const newDir = '/tmp/empirical'
 describe('config', function () {
   var config = require('../lib/config')
   it('.load() should create a default config file if there is none', function (done) {
@@ -37,7 +38,6 @@ describe('config', function () {
       done()
     }).catch(done)
   })
-  const newDir = '/tmp/empirical'
   it('.save() should save updated variables', function (done) {
     process.env.EMPIRICAL_DIR = newDir
     config.save()
@@ -56,6 +56,17 @@ describe('config', function () {
     }).catch(done)
   })
   it('.update() should allow to interactively set EMPIRICAL_DIR')
+})
+
+describe('initDirs()', function () {
+  it('should create data and workspace directories', function (done) {
+    var initDirs = require('../lib/init-dirs')
+    initDirs().then(function () {
+      assert(fs.lstatSync(`${newDir}/data`).isDirectory())
+      assert(fs.lstatSync(`${newDir}/workspaces`).isDirectory())
+      done()
+    }).catch(done)
+  })
 })
 
 describe('auth', function () {
