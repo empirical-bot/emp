@@ -4,6 +4,7 @@ var usage = require('./lib/usage')
 var configure = require('./lib/config').update
 var auth = require('./lib/auth')
 var run = require('./lib/run')
+var logger = require('./lib/logger')
 
 function version () {
   const emp_version = require('./package.json').version
@@ -13,7 +14,7 @@ function version () {
 function execute (args) {
   switch (args[2]) {
     case 'run':
-      return run(args[3], args[4])
+      return run(args[3], args[4], logger)
     case 'configure':
       return configure()
     case 'login':

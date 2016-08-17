@@ -2,12 +2,8 @@
 
 var assert = require('assert')
 var fs = require('fs')
-var debug = require('debug')('emp')
 var path = require('path')
-
-function logHandler (log) {
-  debug(log)
-}
+var debugLogger = require('./debug-logger')
 
 const ENV_FILE = path.join(process.env.HOME, '/.emp/emp.env')
 
@@ -126,7 +122,7 @@ describe('buildImage', function () {
     buildImage({
       build: '.',
       dockerfile: 'bad_dockerfile'
-    }, './test', logHandler).then(function () {
+    }, './test', debugLogger.write).then(function () {
       done(new Error('Build error not caught'))
     }).catch(function (err) {
       assert(err)
@@ -155,12 +151,12 @@ describe('run()', function () {
   const run = require('../lib/run')
   it('should run an experiment', function (done) {
     this.timeout(60000)
-    run('hello-world', 'node_modules/fixtures/standalone_project')
+    run('hello-world', 'node_modules/fixtures/standalone_project', debugLogger)
     .then(done)
     .catch(done)
   })
   it('should fail if no code path is given', function (done) {
-    run('hello-world')
+    run('hello-world', undefined, debugLogger)
     .then(function () {
       done(new Error('Didn\'t throw error without a code path'))
     })
@@ -170,7 +166,7 @@ describe('run()', function () {
     })
   })
   it('should fail if the experiment-name is not found', function (done) {
-    run('something', 'node_modules/fixtures/standalone_project')
+    run('something', 'node_modules/fixtures/standalone_project', debugLogger)
     .then(function () {
       done(new Error('Experiment not found error wasn\'t caught'))
     })
