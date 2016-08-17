@@ -71,12 +71,6 @@ describe('auth', function () {
   it('.logout() should clear credentials')
 })
 
-describe('usage', function () {
-  it('.main() should describe the main usage')
-  it('.data() should describe the data subcommand usage')
-  it('.run() should describe the run subcommand usage')
-})
-
 describe('gitClone', function () {
   var gitClone = require('../lib/git-clone')
   it('should clone a repo into a temp directory', function (done) {
