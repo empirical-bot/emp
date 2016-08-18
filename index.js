@@ -18,7 +18,7 @@ function captureCredentials () {
   var user = creds.length === 2 ? creds[0] : 'None'
   console.log('Log in with your Empirical credentials. If you don\'t have an account, create one at https://empiricalci.com')
   return new Promise(function (resolve, reject) {
-    read({prompt: `Username: [${user}]: `}, function (err, newUser) {
+    read({prompt: `Username [${user}]: `}, function (err, newUser) {
       if (err) return reject(err)
       read({prompt: 'Password: ', silent: true}, function (err, newPass) {
         if (err) return reject(err)
@@ -66,14 +66,14 @@ function execute (args) {
     case 'login':
       return captureCredentials().then(auth.login)
       .then(function () {
-        logger.log('Logged in successfully. Stored credentials.')
+        logger.log('Logged in successfully. Credentials stored.')
       }).catch(function (err) {
         logger.error(err.message)
         return Promise.reject()
       })
     case 'logout':
       return auth.logout().then(function () {
-        console.log('Logged out successfully. Cleared credentials.')
+        console.log('Logged out successfully. Credentials cleared.')
       })
     case 'data':
       return dataCLI(args[3], args[4])

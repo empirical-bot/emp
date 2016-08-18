@@ -5,6 +5,7 @@ const exec = require('child_process').exec
 const assert = require('assert')
 const setup = require('./setup')
 const path = require('path')
+const fs = require('fs')
 // const debug = require('debug')('emp')
 
 const ENV_FILE = path.join(process.env.HOME, '/.emp/emp.env')
@@ -37,7 +38,23 @@ describe('emp configure', function () {
     }
     emp.stdout.once('data', handler)
   })
-  it('Fails if passed a non-absolute directory')
+  it('closes without failure', function (done) {
+    emp.on('close', function (code) {
+      assert.equal(code, 0)
+      done()
+    })
+  })
+  it('Fails if passed a non-absolute directory', function (done) {
+    this.timeout(30000)
+    const emp2 = spawn('node', ['index.js', 'configure'])
+    emp2.stdout.once('data', function (log) {
+      emp2.stdin.write('node_modules/\n')
+    })
+    emp2.on('close', function (code) {
+      assert.equal(code, 1)
+      done()
+    })
+  })
 })
 
 describe('emp run', function () {
@@ -57,12 +74,56 @@ describe('emp data', function () {
 })
 
 describe('emp login', function () {
-  it('prompts to input user')
-  it('promprs to input password')
+  it('works with the right credentials', function (done) {
+    const emp = spawn('node', ['index.js', 'login'])
+    emp.on('close', function (code) {
+      assert.equal(code, 0)
+      done()
+    })
+    emp.stdout.once('data', function (prompt) {
+      emp.stdout.once('data', function (prompt2) {
+        emp.stdin.write('empirical-bot\n')
+        emp.stdout.once('data', function (prompt3) {
+          emp.stdin.write('password\n')
+          emp.stdout.once('data', function (prompt4) {
+            assert.equal(prompt4.toString(), 'Logged in successfully. Credentials stored.\n')
+          })
+        })
+      })
+    })
+  })
+  it('failed with the wrong credentials', function (done) {
+    const emp = spawn('node', ['index.js', 'login'])
+    emp.on('close', function (code) {
+      assert.equal(code, 1)
+      done()
+    })
+    emp.stdout.once('data', function (prompt) {
+      emp.stdout.once('data', function (prompt2) {
+        emp.stdin.write('empirical-bot\n')
+        emp.stdout.once('data', function (prompt3) {
+          emp.stdin.write('wrong password\n')
+          emp.stdout.once('data', function (prompt4) {
+            assert.equal(prompt4.toString(), 'Login failed. Wrong credentials.\n')
+          })
+        })
+      })
+    })
+  })
 })
 
 describe('emp logout', function () {
-  it('clears credentials and logs confirmation')
+  it('clears credentials and logs confirmation', function (done) {
+    exec('node index.js logout', function (err, stdout, stderr) {
+      assert.equal(stdout, 'Logged out successfully. Credentials cleared.\n')
+      assert.ifError(err)
+      fs.readFile(ENV_FILE, 'utf8', function (err, content) {
+        assert.ifError(err)
+        assert(content.indexOf(`EMPIRICAL_AUTH=\"None\"`) > -1, 'Variable not saved')
+        done()
+      })
+    })
+  })
 })
 
 after(function (done) {

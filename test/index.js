@@ -72,7 +72,7 @@ describe('auth', function () {
     .then(function () {
       done(new Error('Login error not caught'))
     }).catch(function (err) {
-      assert.equal(err.message, 'Login failed: Wrong credentials.')
+      assert.equal(err.message, 'Login failed. Wrong credentials.')
       done()
     })
   })
