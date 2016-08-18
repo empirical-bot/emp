@@ -64,6 +64,9 @@ describe('initDirs()', function () {
 
 describe('auth', function () {
   var auth = require('../lib/auth')
+  before(function (done) {
+    require('./wait-for-it')('http://localhost:1337', done)
+  })
   it('.login() should not save credentials when invalid', function (done) {
     auth.login({user: 'empirical-bot', password: 'wrongPassword'})
     .then(function () {
