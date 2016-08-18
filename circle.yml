@@ -16,6 +16,7 @@ test:
   override:
     - npm run lint
     - npm run test-cov
+    - npm run test-cli
 deployment:
   release:
     tag: /v[0-9]+(\.[0-9]+)*/

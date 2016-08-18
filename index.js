@@ -30,7 +30,7 @@ function captureCredentials () {
 
 function captureDirectory () {
   return new Promise(function (resolve, reject) {
-    read({prompt: `Empirical directory: [${process.env.EMPIRICAL_DIR}]: `}, function (err, newDir) {
+    read({prompt: `Empirical directory [${process.env.EMPIRICAL_DIR}]: `}, function (err, newDir) {
       if (err) return reject(err)
       return resolve(newDir)
     })

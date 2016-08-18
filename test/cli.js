@@ -3,10 +3,19 @@
 const spawn = require('child_process').spawn
 const exec = require('child_process').exec
 const assert = require('assert')
+const setup = require('./setup')
+const path = require('path')
 // const debug = require('debug')('emp')
 
+const ENV_FILE = path.join(process.env.HOME, '/.emp/emp.env')
+
+before(function (done) {
+  process.env.EMPIRICAL_HOST = 'http://localhost:1337'
+  setup.backupConfig(ENV_FILE, done)
+})
+
 describe('emp configure', function () {
-  const emp = spawn('./bin/run.sh', ['configure'])
+  const emp = spawn('node', ['index.js', 'configure'])
   emp.stderr.on('data', function (err) {
     console.log(err.toString())
   })
@@ -34,7 +43,7 @@ describe('emp configure', function () {
 describe('emp run', function () {
   it('runs the experiment', function (done) {
     this.timeout(60000)
-    exec('./bin/run.sh run hello-world node_modules/fixtures/standalone_project', function (err, stdout, stderr) {
+    exec('node index.js run hello-world node_modules/fixtures/standalone_project', function (err, stdout, stderr) {
       if (err) return done(err)
       console.log(stdout)
       done()
@@ -47,6 +56,15 @@ describe('emp data', function () {
   it('hash file should log the hash of the file')
 })
 
-describe('emp login')
-describe('emp logout')
+describe('emp login', function () {
+  it('prompts to input user')
+  it('promprs to input password')
+})
 
+describe('emp logout', function () {
+  it('clears credentials and logs confirmation')
+})
+
+after(function (done) {
+  setup.resetConfig(ENV_FILE, done)
+})

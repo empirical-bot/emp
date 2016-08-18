@@ -4,23 +4,13 @@ var assert = require('assert')
 var fs = require('fs')
 var path = require('path')
 var debugLogger = require('./debug-logger')
+var setup = require('./setup')
 
 const ENV_FILE = path.join(process.env.HOME, '/.emp/emp.env')
 
 before(function (done) {
   process.env.EMPIRICAL_HOST = 'http://localhost:1337'
-  // Move config file if it exists
-  fs.lstat(ENV_FILE, function (err, stats) {
-    if (err) return done()
-    if (stats.isFile()) {
-      fs.rename(ENV_FILE, `${ENV_FILE}.bak`, function (err) {
-        if (err) return done(err)
-        done()
-      })
-    } else {
-      done()
-    }
-  })
+  setup.backupConfig(ENV_FILE, done)
 })
 
 const newDir = '/tmp/empirical'
@@ -208,18 +198,5 @@ describe('run()', function () {
 })
 
 after(function (done) {
-  // Remove newly created ENV_FILE
-  fs.unlinkSync(ENV_FILE)
-  // Move original config file if back, if it exists
-  fs.lstat(`${ENV_FILE}.bak`, function (err, stats) {
-    if (err) return done()
-    if (stats.isFile()) {
-      fs.rename(`${ENV_FILE}.bak`, ENV_FILE, function (err) {
-        if (err) return done(err)
-        done()
-      })
-    } else {
-      done()
-    }
-  })
+  setup.resetConfig(ENV_FILE, done)
 })
