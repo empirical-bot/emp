@@ -42,4 +42,11 @@ describe('emp run', function () {
   })
 })
 
-// TODO: Test install script
+describe('emp data', function () {
+  it('get url should save and log dataset')
+  it('hash file should log the hash of the file')
+})
+
+describe('emp login')
+describe('emp logout')
+

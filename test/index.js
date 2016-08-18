@@ -8,6 +8,7 @@ var debugLogger = require('./debug-logger')
 const ENV_FILE = path.join(process.env.HOME, '/.emp/emp.env')
 
 before(function (done) {
+  process.env.EMPIRICAL_HOST = 'http://localhost:1337'
   // Move config file if it exists
   fs.lstat(ENV_FILE, function (err, stats) {
     if (err) return done()
@@ -34,12 +35,19 @@ describe('config', function () {
       done()
     }).catch(done)
   })
-  it('.save() should save updated variables', function (done) {
-    process.env.EMPIRICAL_DIR = newDir
-    config.save()
+  it('.update() should save updated variables', function (done) {
+    config.update({dir: newDir})
     fs.readFile(ENV_FILE, 'utf8', function (err, content) {
       assert.ifError(err)
       assert(content.indexOf(`EMPIRICAL_DIR=\"${newDir}\"`) > -1, 'Variable not saved')
+      done()
+    })
+  })
+  it('.updateDir() should fail with relative dirs', function (done) {
+    config.updateDir('node_modules/').then(function () {
+      done(new Error('Should\'t upadte relative paths'))
+    }).catch(function (err) {
+      assert.equal(err.message, 'Relative paths not allowed')
       done()
     })
   })
@@ -51,7 +59,6 @@ describe('config', function () {
       done()
     }).catch(done)
   })
-  it('.update() should allow to interactively set EMPIRICAL_DIR')
 })
 
 describe('initDirs()', function () {
@@ -66,9 +73,40 @@ describe('initDirs()', function () {
 })
 
 describe('auth', function () {
-  it('.login() should save credentials when valid')
-  it('.login() should not save credentials when invalid')
-  it('.logout() should clear credentials')
+  var auth = require('../lib/auth')
+  it('.login() should not save credentials when invalid', function (done) {
+    auth.login({user: 'empirical-bot', password: 'wrongPassword'})
+    .then(function () {
+      done(new Error('Login error not caught'))
+    }).catch(function (err) {
+      assert.equal(err.message, 'Login failed: Wrong credentials.')
+      done()
+    })
+  })
+
+  it('.login() should save credentials when valid', function (done) {
+    auth.login({user: 'empirical-bot', password: 'password'})
+    .then(function () {
+      var creds = new Buffer(process.env.EMPIRICAL_AUTH, 'base64').toString().split(':')
+      assert.equal(creds[0], 'empirical-bot')
+      assert.equal(creds[1], 'password')
+      fs.readFile(ENV_FILE, 'utf8', function (err, content) {
+        assert.ifError(err)
+        assert(content.indexOf(`EMPIRICAL_AUTH=\"${process.env.EMPIRICAL_AUTH}\"`) > -1, 'Variable not saved')
+        done()
+      })
+    }).catch(done)
+  })
+
+  it('.logout() should clear credentials', function (done) {
+    auth.logout()
+    fs.readFile(ENV_FILE, 'utf8', function (err, content) {
+      assert.ifError(err)
+      assert.equal(process.env.EMPIRICAL_AUTH, 'None')
+      assert(content.indexOf(`EMPIRICAL_AUTH=\"None\"`) > -1, 'Variable not saved')
+      done()
+    })
+  })
 })
 
 describe('gitClone', function () {
@@ -103,10 +141,8 @@ describe('readProtocol', function () {
 })
 
 describe('data', function () {
-  it('.get(url) should save and log dataset')
-  it('hash file should log the hash of the file')
-  it('should install from json file path')
-  it('should install from object')
+  it('.install() should install from json file path')
+  it('.install() should install from object')
 })
 
 describe('buildImage', function () {
